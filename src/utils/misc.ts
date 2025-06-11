@@ -22,6 +22,7 @@ export const getDiffInfoForPR = (pull: PullRequestParams, context: Context): Dif
 export const isDefaultBranch = async(octokit: Octokit, context: Context): Promise<boolean> => await (new ApiHelper(octokit, context)).getDefaultBranch() === Utils.getBranch(context);
 
 const getBase = (context: Context): string => getInput('BASE') || context.payload.before;
+const getHead = (context: Context): string => getInput('HEAD') || context.payload.after;
 
 export const getDiffInfoForPush = async(octokit: Octokit, context: Context): Promise<DiffInfo> => {
   if (Utils.isTagRef(context)) {
@@ -55,11 +56,11 @@ export const getDiffInfoForPush = async(octokit: Octokit, context: Context): Pro
 
   return {
     base: getBase(context),
-    head: context.payload.after,
+    head: getHead(context),
   };
 };
 
-const checkOnlyCommit    = (isDraft: boolean): boolean => isDraft && Utils.getBoolValue(getInput('CHECK_ONLY_COMMIT_WHEN_DRAFT'));
+const checkOnlyCommit = (isDraft: boolean): boolean => isDraft && Utils.getBoolValue(getInput('CHECK_ONLY_COMMIT_WHEN_DRAFT'));
 export const getDiffInfo = async(octokit: Octokit, context: Context): Promise<DiffInfo> => {
   if (context.payload.pull_request) {
     if (checkOnlyCommit(context.payload.pull_request.draft)) {
