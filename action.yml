@@ -18,7 +18,7 @@ inputs:
     description: base
     required: false
   HEAD:
-  description: 'Head branch, ref, or SHA to compare to'
+  description: Head branch, ref, or SHA to compare to
   required: false
   RELATIVE:
     description: relative filter
