@@ -12,12 +12,16 @@ const run = async(): Promise<void> => {
   const context = new Context();
   ContextHelper.showActionInfo(resolve(__dirname, '..'), logger, context);
 
-  // BASE or HEADが指定されていれば強制実行
+  if (!isTargetEvent(TARGET_EVENTS, context)) {
+    logger.info('This is not target event.');
+    await execute(logger, context, true);
+    return;
+  }
+
   const base = getInput('BASE');
   const head = getInput('HEAD');
-
-  if (!isTargetEvent(TARGET_EVENTS, context) && base === '' && head === '') {
-    logger.info('This is not target event.');
+  if (context.eventName === 'workflow_dispatch' && (base === '' || head === '')) {
+    logger.info('Missing inputs \'BASE\' or \'HEAD\' for workflow_dispatch event.');
     await execute(logger, context, true);
     return;
   }
