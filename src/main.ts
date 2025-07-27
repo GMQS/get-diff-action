@@ -16,7 +16,7 @@ const run = async(): Promise<void> => {
   const base = getInput('BASE');
   const head = getInput('HEAD');
 
-  if (!isTargetEvent(TARGET_EVENTS, context) && !base && !head) {
+  if (!isTargetEvent(TARGET_EVENTS, context) && base === '' && head === '') {
     logger.info('This is not target event.');
     await execute(logger, context, true);
     return;
