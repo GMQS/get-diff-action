@@ -4,6 +4,9 @@ import type { Octokit } from '@technote-space/github-action-helper/dist/types';
 import { getInput } from '@actions/core';
 import { Utils, ApiHelper } from '@technote-space/github-action-helper';
 
+// Whether SHA was started directly specified.
+const isManualSpecification = getInput('BASE') !== '' && getInput('HEAD') !== '';
+
 export const escape = (items: string[]): string[] => items.map(item => {
   // eslint-disable-next-line no-useless-escape
   if (!/^[A-Za-z0-9_\/-]+$/.test(item)) {
@@ -20,9 +23,6 @@ export const getDiffInfoForPR = (pull: PullRequestParams, context: Context): Dif
 });
 
 export const isDefaultBranch = async(octokit: Octokit, context: Context): Promise<boolean> => await (new ApiHelper(octokit, context)).getDefaultBranch() === Utils.getBranch(context);
-
-const getBase = (context: Context): string => getInput('BASE') || context.payload.before;
-const getHead = (context: Context): string => getInput('HEAD') || context.payload.after;
 
 export const getDiffInfoForPush = async(octokit: Octokit, context: Context): Promise<DiffInfo> => {
   if (Utils.isTagRef(context)) {
@@ -54,14 +54,28 @@ export const getDiffInfoForPush = async(octokit: Octokit, context: Context): Pro
     };
   }
 
+  if (isManualSpecification) {
+    return {
+      base: getInput('BASE'),
+      head: getInput('HEAD'),
+    };
+  }
+
   return {
-    base: getBase(context),
-    head: getHead(context),
+    base: context.payload.before,
+    head: context.payload.after,
   };
 };
 
 const checkOnlyCommit = (isDraft: boolean): boolean => isDraft && Utils.getBoolValue(getInput('CHECK_ONLY_COMMIT_WHEN_DRAFT'));
 export const getDiffInfo = async(octokit: Octokit, context: Context): Promise<DiffInfo> => {
+  if (isManualSpecification) {
+    return {
+      base: getInput('BASE'),
+      head: getInput('HEAD'),
+    };
+  }
+
   if (context.payload.pull_request) {
     if (checkOnlyCommit(context.payload.pull_request.draft)) {
       return {
